@@ -1,0 +1,676 @@
+{
+  "sets": [
+    {
+      "id": "s1",
+      "title": "样题 1 · 推理流水线与文本/图像基础",
+      "topic": "PyTorch 训练 / 推理流水线",
+      "questions": [
+        {
+          "id": "s1-q1",
+          "type": "fill",
+          "prompt": "下面是模型训练脚本的开头部分，用于固定随机性以保证实验结果可复现。\n\nimport random\nimport numpy as np\nimport torch\nSEED = 2026\nrandom.seed(SEED)\nnp.random.seed(SEED)\n____",
+          "options": [
+            { "key": "A", "code": "torch.device(SEED)" },
+            { "key": "B", "code": "torch.manual_seed(SEED)" },
+            { "key": "C", "code": "torch.no_grad(SEED)" },
+            { "key": "D", "code": "torch.save(SEED)" }
+          ],
+          "answer": "B",
+          "explanation": "torch.manual_seed 用于设置 PyTorch 全局随机种子（含 CPU 与当前 GPU），与 random.seed / np.random.seed 配合实现完全可复现。"
+        },
+        {
+          "id": "s1-q2",
+          "type": "fill",
+          "prompt": "某三分类文本模型在定义训练组件，要求使用适合多分类的损失函数，以及学习率为 1e-3 的 Adam 优化器。\n\nmodel = TextLSTM(vocab_size=5000, num_classes=3)\ncriterion = ____(1)____\noptimizer = ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.Adam(model, lr=0.1)" },
+            { "key": "B", "code": "(1) nn.L1Loss()；(2) torch.optim.Adam(model.parameters(), lr=1e-3)" },
+            { "key": "C", "code": "(1) nn.MSELoss()；(2) torch.optim.SGD(model.parameters(), lr=1e-3)" },
+            { "key": "D", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.Adam(model.parameters(), lr=1e-3)" }
+          ],
+          "answer": "D",
+          "explanation": "多分类用 CrossEntropyLoss（输入 logits + 整数类标签，内部 Softmax），L1Loss/MSELoss 适用于回归；Adam 必须传 model.parameters()，学习率 1e-3。"
+        },
+        {
+          "id": "s1-q3",
+          "type": "fill",
+          "prompt": "下面的函数用于清洗报修工单文本，需要依次去除 HTML 标签、网址和全部空白字符。\n\nimport re\ndef clean_text(s):\n    s = re.sub(r'<[^>]+>', '', s)  # 去除 HTML 标签\n    s = re.sub(r'https?://\\S+', '', s)  # 去除网址\n    s = ____  # 去除所有空白字符\n    return s",
+          "options": [
+            { "key": "A", "code": "re.sub(r'\\s+', '', s)" },
+            { "key": "B", "code": "re.sub(r'\\w+', '', s)" },
+            { "key": "C", "code": "re.sub(r'\\s+', ' ', s)" },
+            { "key": "D", "code": "s.strip()" }
+          ],
+          "answer": "A",
+          "explanation": "r'\\s+' 匹配全部空白（空格/制表/换行），用 '' 替换即可全部去掉。C 是合并成单个空格，D 只去首尾。"
+        },
+        {
+          "id": "s1-q4",
+          "type": "fill",
+          "prompt": "下面的函数把一条文本转换为长度固定的 id 序列：未登录字使用 <UNK>，超长截断，不足在尾部用 <PAD> 补齐。\n\ntoken2id = {'<PAD>': 0, '<UNK>': 1, '路': 2, '灯': 3, '不': 4, '亮': 5}\nPAD_ID, UNK_ID, MAX_LEN = 0, 1, 8\ndef encode(text):\n    ids = [____(1)____ for ch in text][:MAX_LEN]\n    ids = ids + ____(2)____\n    return ids\nprint(encode('路灯坏了'))\n# 期望输出：[2, 3, 1, 1, 0, 0, 0, 0]",
+          "options": [
+            { "key": "A", "code": "(1) token2id.get(ch, UNK_ID)；(2) [UNK_ID] * MAX_LEN" },
+            { "key": "B", "code": "(1) token2id.get(ch, PAD_ID)；(2) [PAD_ID] * MAX_LEN" },
+            { "key": "C", "code": "(1) token2id.get(ch, UNK_ID)；(2) [PAD_ID] * (MAX_LEN - len(ids))" },
+            { "key": "D", "code": "(1) token2id[ch]；(2) [PAD_ID] * (MAX_LEN - len(ids))" }
+          ],
+          "answer": "C",
+          "explanation": "未登录字必须用 UNK_ID（不是 PAD_ID），末尾补齐数量应是 MAX_LEN - len(ids)（不是 MAX_LEN）。"
+        },
+        {
+          "id": "s1-q5",
+          "type": "fill",
+          "prompt": "下面构建的是推理阶段使用的图像预处理流水线：把 PIL 图像缩放到 224×224，转换为张量，再按 ImageNet 的均值和标准差做标准化。推理流程必须是确定性的，不得包含任何随机操作。\n\ninfer_tf = transforms.Compose([\n    transforms.Resize((224, 224)),\n    ____(1)____,\n    ____(2)____,\n])",
+          "options": [
+            { "key": "A", "code": "(1) transforms.ToTensor()；(2) transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])" },
+            { "key": "B", "code": "(1) transforms.ToTensor()；(2) transforms.RandomResizedCrop(224)" },
+            { "key": "C", "code": "(1) transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])；(2) transforms.ToTensor()" },
+            { "key": "D", "code": "(1) transforms.RandomHorizontalFlip()；(2) transforms.ToTensor()" }
+          ],
+          "answer": "A",
+          "explanation": "顺序必须是 ToTensor → Normalize（Normalize 输入必须是 Tensor）；RandomResizedCrop/RandomHorizontalFlip 含随机操作，推理流程不应使用。"
+        },
+        {
+          "id": "s1-q6",
+          "type": "fill",
+          "prompt": "下面是图像数据集类中读取单张图像的代码。测试集中混有单通道灰度图，若不统一通道数，组装 batch 时会报错：\nRuntimeError: stack expects each tensor to be equal size, but got [3, 224, 224] ... and [1, 224, 224]\n\ndef __getitem__(self, i):\n    path = os.path.join(self.root, self.files[i])\n    img = ____\n    img = self.transform(img)\n    return img, self.files[i]",
+          "options": [
+            { "key": "A", "code": "Image.new('RGB', (224, 224))" },
+            { "key": "B", "code": "Image.open(path).convert('RGB')" },
+            { "key": "C", "code": "Image.open(path)" },
+            { "key": "D", "code": "Image.open(path).convert('L')" }
+          ],
+          "answer": "B",
+          "explanation": ".convert('RGB') 把任何模式（灰度 L / RGBA / CMYK 等）统一转为 3 通道 RGB，是目标检测/分类的标准预处理。.convert('L') 会变成单通道，反而加剧问题。"
+        },
+        {
+          "id": "s1-q7",
+          "type": "fill",
+          "prompt": "下面的训练代码要求：有可用 GPU 时使用 GPU，没有时自动回退到 CPU。\n\n____\nmodel = model.to(device)\nfor images, labels in train_loader:\n    images, labels = images.to(device), labels.to(device)\n    outputs = model(images)",
+          "options": [
+            { "key": "A", "code": "device = torch.gpu()" },
+            { "key": "B", "code": "device = 'GPU'" },
+            { "key": "C", "code": "device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')" },
+            { "key": "D", "code": "device = torch.device('cuda')" }
+          ],
+          "answer": "C",
+          "explanation": "torch.device('cuda' if torch.cuda.is_available() else 'cpu') 是标准写法。A/B/D 都不能在无 GPU 环境下回退。"
+        },
+        {
+          "id": "s1-q8",
+          "type": "fill",
+          "prompt": "下面的代码把推理结果写出为两个文件。要求：CSV 中不得出现多余的索引列；JSON 中的中文按原文保存，不转义为 \\uXXXX 形式。\n\nresult_df = pd.DataFrame(records, columns=['image_id', 'pred_label', 'confidence'])\n____(1)____\nwith open('outputs/result.json', 'w', encoding='utf-8') as f:\n    ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) result_df.to_csv('outputs/submission.csv', encoding='utf-8')；(2) json.dump(summary, f, indent=2)" },
+            { "key": "B", "code": "(1) result_df.save('outputs/submission.csv')；(2) f.write(summary)" },
+            { "key": "C", "code": "(1) result_df.to_csv('outputs/submission.csv', index=True)；(2) json.dump(summary, f, ensure_ascii=True)" },
+            { "key": "D", "code": "(1) result_df.to_csv('outputs/submission.csv', index=False, encoding='utf-8')；(2) json.dump(summary, f, ensure_ascii=False, indent=2)" }
+          ],
+          "answer": "D",
+          "explanation": "CSV 必须 index=False 才不写多余索引列；JSON 必须 ensure_ascii=False 中文才不会被转义为 \\uXXXX。"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "title": "样题 2 · Python 基础 + PyTorch 训练",
+      "topic": "PyTorch 训练 / 推理流水线",
+      "questions": [
+        {
+          "id": "s2-q1",
+          "type": "fill",
+          "prompt": "下面的代码用于设置实验随机种子。NumPy 和 PyTorch 的随机种子已经设置，还需要设置 Python 内置 random 模块的随机种子。\n\nimport random\nimport numpy as np\nimport torch\nSEED = 2027\nnp.random.seed(SEED)\ntorch.manual_seed(SEED)\n____",
+          "options": [
+            { "key": "A", "code": "random.manual_seed(SEED)" },
+            { "key": "B", "code": "np.manual_seed(SEED)" },
+            { "key": "C", "code": "torch.seed(SEED)" },
+            { "key": "D", "code": "random.seed(SEED)" }
+          ],
+          "answer": "D",
+          "explanation": "Python 内置 random 模块的种子用 random.seed()。其它都是错的函数名。"
+        },
+        {
+          "id": "s2-q2",
+          "type": "fill",
+          "prompt": "某四分类图像模型每个样本只对应一个类别，模型输出四个未经 Softmax 处理的分数。要求使用交叉熵损失，以及学习率为 0.01、动量为 0.9 的 SGD 优化器。\n\nmodel = ImageClassifier(num_classes=4)\ncriterion = ____(1)____\noptimizer = ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)" },
+            { "key": "B", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.Adam(model.parameters(), lr=0.01)" },
+            { "key": "C", "code": "(1) nn.MSELoss()；(2) torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)" },
+            { "key": "D", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.SGD(model, lr=0.01, momentum=0.9)" }
+          ],
+          "answer": "A",
+          "explanation": "多分类选 CrossEntropyLoss；SGD 必须传 model.parameters() 而不是 model；Adam 没有动量参数。"
+        },
+        {
+          "id": "s2-q3",
+          "type": "fill",
+          "prompt": "下面的函数用于清洗设备工单文本。去除 HTML 标签后，需要将连续的空格、制表符和换行符统一替换为一个普通空格，并去除首尾空白。\n\nimport re\ndef clean_text(s):\n    s = re.sub(r'<[^>]+>', '', s)\n    s = ____\n    return s\nprint(clean_text('<div> 设备\\t 出现 异响\\n </div>'))\n# 期望输出：设备 出现 异响",
+          "options": [
+            { "key": "A", "code": "re.sub(r'\\s+', '', s)" },
+            { "key": "B", "code": "s.strip()" },
+            { "key": "C", "code": "re.sub(r'\\s+', ' ', s).strip()" },
+            { "key": "D", "code": "re.sub(r'\\w+', '', s)" }
+          ],
+          "answer": "C",
+          "explanation": "把 \\s+ 替换成单空格后，再 strip() 去首尾；A 全部去掉；D 把单词都删了。"
+        },
+        {
+          "id": "s2-q4",
+          "type": "fill",
+          "prompt": "下面的函数将已经分词的文本转换为固定长度的 Token ID 序列。要求：未收录词使用 UNK_ID，超过 MAX_LEN 时截断，不足时在尾部使用 PAD_ID 补齐。\n\ntoken2id = {'<PAD>': 0, '<UNK>': 1, '设备': 2, '出现': 3, '报警': 4}\nPAD_ID, UNK_ID, MAX_LEN = 0, 1, 6\ndef encode(words):\n    ids = [____(1)____ for word in words][:MAX_LEN]\n    ids = ids + ____(2)____\n    return ids\nprint(encode(['设备', '出现', '异响', '报警']))\n# 期望输出：[2, 3, 1, 4, 0, 0]",
+          "options": [
+            { "key": "A", "code": "(1) token2id[word]；(2) [PAD_ID] * (MAX_LEN - len(ids))" },
+            { "key": "B", "code": "(1) token2id.get(word, UNK_ID)；(2) [PAD_ID] * (MAX_LEN - len(ids))" },
+            { "key": "C", "code": "(1) token2id.get(word, PAD_ID)；(2) [UNK_ID] * (MAX_LEN - len(ids))" },
+            { "key": "D", "code": "(1) token2id.get(word, UNK_ID)；(2) [PAD_ID] * MAX_LEN" }
+          ],
+          "answer": "B",
+          "explanation": "未收录词用 UNK_ID（不是 PAD_ID），补齐数量应是 MAX_LEN - len(ids)。"
+        },
+        {
+          "id": "s2-q5",
+          "type": "fill",
+          "prompt": "下面构建图像验证集的预处理流水线。输入为 RGB 格式的 PIL 图像，要求先缩放到 256×256，再转换为张量，最后使用三个通道均为 0.5 的均值和标准差进行标准化。验证流程不得包含随机增强。\n\nfrom torchvision import transforms\nval_tf = transforms.Compose([\n    ____(1)____,\n    transforms.ToTensor(),\n    ____(2)____,\n])",
+          "options": [
+            { "key": "A", "code": "(1) transforms.RandomResizedCrop(256)；(2) transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])" },
+            { "key": "B", "code": "(1) transforms.Resize((256, 256))；(2) transforms.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0])" },
+            { "key": "C", "code": "(1) transforms.Resize((256, 256))；(2) transforms.ToTensor()" },
+            { "key": "D", "code": "(1) transforms.Resize((256, 256))；(2) transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])" }
+          ],
+          "answer": "D",
+          "explanation": "Resize → ToTensor → Normalize；均值/标准差必须按题设为 0.5；A 含随机裁剪；B 是恒等标准化；C 缺 Normalize。"
+        },
+        {
+          "id": "s2-q6",
+          "type": "fill",
+          "prompt": "某图像分类模型要求输入三通道 RGB 图像，但数据中混有 RGB、RGBA 和灰度图。下面的代码需要读取原始图像内容，并统一转换为 RGB 格式。\n\nfrom PIL import Image\ndef load_image(path):\n    img = ____\n    return img",
+          "options": [
+            { "key": "A", "code": "Image.open(path).convert('RGB')" },
+            { "key": "B", "code": "Image.open(path).convert('L')" },
+            { "key": "C", "code": "Image.open(path).convert('RGBA')" },
+            { "key": "D", "code": "Image.new('RGB', (256, 256))" }
+          ],
+          "answer": "A",
+          "explanation": "convert('RGB') 把任意模式统一为三通道 RGB，是分类/检测模型读图的标准方式。"
+        },
+        {
+          "id": "s2-q7",
+          "type": "fill",
+          "prompt": "下面的代码已经根据 CUDA 是否可用选择了运行设备，并将模型移动到该设备。为了使同一次训练中的输入、标签和模型设备一致，需要补全批次数据的移动代码。\n\ndevice = torch.device('cuda' if torch.cuda.is_available() else 'cpu')\nmodel = model.to(device)\nfor images, labels in train_loader:\n    images = ____(1)____\n    labels = ____(2)____\n    outputs = model(images)\n    loss = criterion(outputs, labels)",
+          "options": [
+            { "key": "A", "code": "(1) images.cuda()；(2) labels.cuda()" },
+            { "key": "B", "code": "(1) images.to(device)；(2) labels.to(device)" },
+            { "key": "C", "code": "(1) images.to(device)；(2) labels.cpu()" },
+            { "key": "D", "code": "(1) images.cpu()；(2) labels.to(device)" }
+          ],
+          "answer": "B",
+          "explanation": "应使用与模型相同的 device 变量（保证 CPU/GPU 都正确），而不是写死 .cuda()。"
+        },
+        {
+          "id": "s2-q8",
+          "type": "fill",
+          "prompt": "下面的代码保存图像分类预测结果。要求：CSV 只保留指定的三列，不写入 DataFrame 索引；JSON 中的中文类别名称直接保存为中文字符。\n\nimport json, pandas as pd\nrecords = [['img_001.jpg', '正常', 0.96], ['img_002.jpg', '缺陷', 0.91]]\nsummary = {'样本数量': 2, '任务': '图像分类'}\nresult_df = pd.DataFrame(records, columns=['image_id', 'pred_label', 'confidence'])\n____(1)____\nwith open('outputs/classification_summary.json', 'w', encoding='utf-8') as f:\n    ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) result_df.to_csv('outputs/classification.csv', index=True, encoding='utf-8')；(2) json.dump(summary, f, ensure_ascii=False, indent=2)" },
+            { "key": "B", "code": "(1) result_df.to_csv('outputs/classification.csv', index=False, encoding='utf-8')；(2) json.dump(summary, f, ensure_ascii=True, indent=2)" },
+            { "key": "C", "code": "(1) result_df.to_csv('outputs/classification.csv', index=False, encoding='utf-8')；(2) json.dump(summary, f, ensure_ascii=False, indent=2)" },
+            { "key": "D", "code": "(1) result_df.to_csv('outputs/classification.csv', encoding='utf-8')；(2) json.dump(summary, f, indent=2)" }
+          ],
+          "answer": "C",
+          "explanation": "CSV 需要 index=False 去掉索引；JSON 需要 ensure_ascii=False 保留中文。"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "title": "样题 3 · 数据清洗 + 设备选择",
+      "topic": "PyTorch 训练 / 推理流水线",
+      "questions": [
+        {
+          "id": "s3-q1",
+          "type": "fill",
+          "prompt": "下面的代码已经设置 Python 内置 random 模块和 PyTorch 的随机种子。还需要设置 NumPy 的随机种子。\n\nimport random\nimport numpy as np\nimport torch\nSEED = 2028\nrandom.seed(SEED)\n____\ntorch.manual_seed(SEED)",
+          "options": [
+            { "key": "A", "code": "np.random.manual_seed(SEED)" },
+            { "key": "B", "code": "random.seed(SEED)" },
+            { "key": "C", "code": "np.random.seed(SEED)" },
+            { "key": "D", "code": "torch.manual_seed(SEED)" }
+          ],
+          "answer": "C",
+          "explanation": "NumPy 用 np.random.seed()，其它都不是合法函数。"
+        },
+        {
+          "id": "s3-q2",
+          "type": "fill",
+          "prompt": "某四分类文本模型每个样本只对应一个类别，输出为未经 Softmax 处理的类别分数。要求使用交叉熵损失，以及学习率为 5e-4 的 Adam 优化器。\n\nmodel = TextLSTM(vocab_size=6000, num_classes=4)\ncriterion = ____(1)____\noptimizer = ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) nn.MSELoss()；(2) torch.optim.Adam(model.parameters(), lr=5e-4)" },
+            { "key": "B", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.Adam(model.parameters(), lr=5e-4)" },
+            { "key": "C", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.SGD(model.parameters(), lr=5e-4)" },
+            { "key": "D", "code": "(1) nn.CrossEntropyLoss()；(2) torch.optim.Adam(model.parameters(), lr=0.5)" }
+          ],
+          "answer": "B",
+          "explanation": "多分类必须 CrossEntropyLoss；优化器必须 Adam 且 lr=5e-4。"
+        },
+        {
+          "id": "s3-q3",
+          "type": "fill",
+          "prompt": "下面的函数用于清洗道路工单文本。要求依次去除 HTML 标签、以 http://或 https:// 开头的网址，以及全部空白字符。\n\nimport re\ndef clean_text(s):\n    s = re.sub(r'<[^>]+>', '', s)\n    s = ____\n    s = re.sub(r'\\s+', '', s)\n    return s",
+          "options": [
+            { "key": "A", "code": "re.sub(r'\\s+', '', s)" },
+            { "key": "B", "code": "re.sub(r'https://\\S+', '', s)" },
+            { "key": "C", "code": "re.sub(r'\\w+', '', s)" },
+            { "key": "D", "code": "re.sub(r'https?://\\S+', '', s)" }
+          ],
+          "answer": "D",
+          "explanation": "https? 匹配 http 和 https，\\S+ 匹配到空白为止。B 只匹配 https 漏掉 http。"
+        },
+        {
+          "id": "s3-q4",
+          "type": "fill",
+          "prompt": "下面的函数已经将文本中的每个字转换为 ID，并使用 UNK_ID 处理未收录字。需要继续完成长度处理：超过 MAX_LEN 时保留前 MAX_LEN 个 ID，不足时在尾部补 PAD_ID。\n\ntoken2id = {'<PAD>': 0, '<UNK>': 1, '道': 2, '路': 3, '积': 4, '水': 5}\nPAD_ID, UNK_ID, MAX_LEN = 0, 1, 5\ndef encode(text):\n    ids = [token2id.get(ch, UNK_ID) for ch in text]\n    ids = ____(1)____\n    ids = ids + ____(2)____\n    return ids\nprint(encode('道路积水严重'))\n# 期望输出：[2, 3, 4, 5, 1]",
+          "options": [
+            { "key": "A", "code": "(1) ids[:MAX_LEN]；(2) [PAD_ID] * (MAX_LEN - len(ids))" },
+            { "key": "B", "code": "(1) ids[MAX_LEN:]；(2) [PAD_ID] * (MAX_LEN - len(ids))" },
+            { "key": "C", "code": "(1) ids[:MAX_LEN]；(2) [UNK_ID] * (MAX_LEN - len(ids))" },
+            { "key": "D", "code": "(1) ids[:MAX_LEN - 1]；(2) [PAD_ID] * (MAX_LEN - len(ids))" }
+          ],
+          "answer": "A",
+          "explanation": "切片 ids[:MAX_LEN] 截断到前 5 个；末尾按当前长度差补 PAD_ID。D 截到 MAX_LEN-1 少一位。"
+        },
+        {
+          "id": "s3-q5",
+          "type": "fill",
+          "prompt": "下面构建测试集图像预处理流水线。输入为 RGB 格式的 PIL 图像，要求缩放到 224×224，转换为张量，并按均值[0.5,0.5,0.5]和标准差[0.25,0.25,0.25]进行标准化。测试阶段不得使用随机增强。\n\nfrom torchvision import transforms\ntest_tf = transforms.Compose([\n    transforms.Resize((224, 224)),\n    ____(1)____,\n    ____(2)____,\n])",
+          "options": [
+            { "key": "A", "code": "(1) transforms.Normalize(...);(2) transforms.ToTensor()" },
+            { "key": "B", "code": "(1) transforms.ToTensor()；(2) transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.25, 0.25, 0.25])" },
+            { "key": "C", "code": "(1) transforms.ToTensor()；(2) transforms.RandomResizedCrop(224)" },
+            { "key": "D", "code": "(1) transforms.RandomHorizontalFlip()；(2) transforms.ToTensor()" }
+          ],
+          "answer": "B",
+          "explanation": "Resize → ToTensor → Normalize；测试不能有随机增强；Normalize 必须在 ToTensor 之后。"
+        },
+        {
+          "id": "s3-q6",
+          "type": "fill",
+          "prompt": "某模型要求使用真实图片内容，并输入三通道 RGB 张量。部分 PNG 图片包含透明度通道，部分图片为灰度图。需要在执行 transform 前统一图像模式。\n\nfrom PIL import Image\ndef read_sample(path, transform):\n    img = ____\n    tensor = transform(img)\n    return tensor",
+          "options": [
+            { "key": "A", "code": "Image.new('RGB', (224, 224))" },
+            { "key": "B", "code": "Image.open(path).convert('L')" },
+            { "key": "C", "code": "Image.open(path).convert('RGB')" },
+            { "key": "D", "code": "Image.open(path).convert('RGBA')" }
+          ],
+          "answer": "C",
+          "explanation": "convert('RGB') 把任意模式统一成 3 通道；A 创建空白图；B/D 会出错或单通道。"
+        },
+        {
+          "id": "s3-q7",
+          "type": "fill",
+          "prompt": "下面的代码要求：CUDA 可用时使用 GPU，否则使用 CPU，并将模型移动到所选设备。\n\nimport torch\ndevice = torch.device('cuda' if ____(1)____ else 'cpu')\nmodel = ____(2)____\nfor images, labels in train_loader:\n    images = images.to(device)\n    labels = labels.to(device)\n    outputs = model(images)",
+          "options": [
+            { "key": "A", "code": "(1) torch.cuda.is_available；(2) model.to(device)" },
+            { "key": "B", "code": "(1) torch.cuda.is_available()；(2) model.cpu()" },
+            { "key": "C", "code": "(1) torch.cuda.is_available()；(2) model.to('cuda')" },
+            { "key": "D", "code": "(1) torch.cuda.is_available()；(2) model.to(device)" }
+          ],
+          "answer": "D",
+          "explanation": "torch.cuda.is_available() 必须带括号；model.to(device) 与 device 变量一致才能自动回退。"
+        },
+        {
+          "id": "s3-q8",
+          "type": "fill",
+          "prompt": "下面的代码将运行摘要保存为 JSON 文件。要求：outputs 目录不存在时自动创建，已经存在时不报错；JSON 中的中文直接保存为中文字符。\n\nimport os, json\nsummary = {'任务': '道路缺陷识别', '样本数量': 120}\n____(1)____\nwith open('outputs/result.json', 'w', encoding='utf-8') as f:\n    ____(2)____",
+          "options": [
+            { "key": "A", "code": "(1) os.makedirs('outputs', exist_ok=True)；(2) json.dump(summary, f, ensure_ascii=False, indent=2)" },
+            { "key": "B", "code": "(1) os.makedirs('outputs', exist_ok=True)；(2) json.dump(summary, f, ensure_ascii=True, indent=2)" },
+            { "key": "C", "code": "(1) os.mkdir('outputs')；(2) json.dump(summary, f, ensure_ascii=False, indent=2)" },
+            { "key": "D", "code": "(1) os.makedirs('outputs', exist_ok=True)；(2) json.dumps(summary, f, ensure_ascii=False)" }
+          ],
+          "answer": "A",
+          "explanation": "os.makedirs(..., exist_ok=True) 不会因目录已存在报错；ensure_ascii=False 让中文不被转义；json.dump 把对象写入文件。"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "title": "样题 4 · 安全帽目标检测（YOLOv8）",
+      "topic": "目标检测",
+      "questions": [
+        {
+          "id": "s4-q1",
+          "type": "toolbox",
+          "prompt": "Cell 1：导入模块与随机种子\n\nimport json, random, numpy as np, pandas as pd, torch\nfrom PIL import Image\nfrom torchvision import transforms\nfrom sklearn.model_selection import train_test_split\nfrom ultralytics import YOLO\nseed = 2026\nrandom.seed(seed)\nnp.random.seed(seed)\n<1>",
+          "options": [],
+          "answer": { "group": "A", "label": "A6" },
+          "explanation": "提示说『从 AI 共性技术工具箱选择一个编号』，且要设置 PyTorch 随机种子，所以选 A6 torch.manual_seed(seed)。"
+        },
+        {
+          "id": "s4-q2",
+          "type": "toolbox",
+          "prompt": "Cell 2：读取清单并进行分层划分\n\ntrain_paths, val_paths = train_test_split(image_paths, test_size=0.20, random_state=seed, <2>)",
+          "options": [],
+          "answer": { "group": "A", "label": "A3" },
+          "explanation": "提示要求按『是否含安全帽』分层，所以 stratify=contains_helmet，对应 A3。"
+        },
+        {
+          "id": "s4-q3",
+          "type": "toolbox",
+          "prompt": "Cell 3：读取并规范化类别名称\n\nclass_names = [line.strip().<3>() for line in f if line.strip()]",
+          "options": [],
+          "answer": { "group": "N", "label": "N1" },
+          "explanation": "提示要求类别名称统一为小写，对应 .lower()。"
+        },
+        {
+          "id": "s4-q4",
+          "type": "toolbox",
+          "prompt": "Cell 3：查询类别编号，未知类别返回无效类别编号\n\nreturn class_to_id.get(name.strip().lower(), <4>)",
+          "options": [],
+          "answer": { "group": "N", "label": "N7" },
+          "explanation": "提示要求返回无效类别编号，通常是 -1（负数一定不在 [0, num_classes) 内）。"
+        },
+        {
+          "id": "s4-q5",
+          "type": "toolbox",
+          "prompt": "Cell 4：样例图像预处理与张量检查，要求将样例图像统一为 640×640\n\npreview_transform = transforms.Compose([<5>, transforms.ToTensor(), transforms.Normalize(...)])",
+          "options": [],
+          "answer": { "group": "C", "label": "C7" },
+          "explanation": "640×640 缩放用 transforms.Resize((640, 640))，对应工具箱 C7。"
+        },
+        {
+          "id": "s4-q6",
+          "type": "toolbox",
+          "prompt": "Cell 4：读取样例图像，要求 PIL 以三通道彩色图像方式读取\n\nsample_image = Image.open(train_paths[0]).convert(<6>)",
+          "options": [],
+          "answer": { "group": "C", "label": "C3" },
+          "explanation": "三通道彩色模式为 'RGB'，对应工具箱 C3。"
+        },
+        {
+          "id": "s4-q7",
+          "type": "toolbox",
+          "prompt": "Cell 5：选择运行设备，有可用 GPU 时使用第 0 号 GPU，否则使用 CPU\n\n<7>",
+          "options": [],
+          "answer": { "group": "E", "label": "E8" },
+          "explanation": "CUDA 可用时用 0 号 GPU，否则 'cpu'，对应 device = 0 if torch.cuda.is_available() else 'cpu'。"
+        },
+        {
+          "id": "s4-q8",
+          "type": "toolbox",
+          "prompt": "Cell 5：使用 data.yaml 训练 YOLOv8n，5 epoch，imgsz=640，batch=8，写入 runs/helmet_initial\n\n<8>",
+          "options": [],
+          "answer": { "group": "E", "label": "E6" },
+          "explanation": "model.train(data=..., epochs=5, imgsz=640, batch=8, device=device, project='runs', name='helmet_initial')。"
+        }
+      ],
+      "toolboxes": {
+        "A": [
+          { "label": "A1", "code": "shuffle=False" },
+          { "label": "A2", "code": "np.manual_seed(seed)" },
+          { "label": "A3", "code": "stratify=image_paths" },
+          { "label": "A4", "code": "torch.manual_seed(seed)" },
+          { "label": "A5", "code": "random_state=None" },
+          { "label": "A6", "code": "torch.manual_seed(seed)" },
+          { "label": "A7", "code": "stratify=contains_helmet" },
+          { "label": "A8", "code": "torch.seed = seed" }
+        ],
+        "N": [
+          { "label": "N1", "code": "lower" },
+          { "label": "N2", "code": "split" },
+          { "label": "N3", "code": "\"unknown\"" },
+          { "label": "N4", "code": "0" },
+          { "label": "N5", "code": "-1" },
+          { "label": "N6", "code": "replace" },
+          { "label": "N7", "code": "-1" },
+          { "label": "N8", "code": "upper" }
+        ],
+        "C": [
+          { "label": "C1", "code": "transforms.ToPILImage()" },
+          { "label": "C2", "code": "\"L\"" },
+          { "label": "C3", "code": "\"RGB\"" },
+          { "label": "C4", "code": "transforms.Resize((640, 640))" },
+          { "label": "C5", "code": "\"BGR\"" },
+          { "label": "C6", "code": "transforms.CenterCrop((32, 32))" },
+          { "label": "C7", "code": "transforms.RandomHorizontalFlip(p=1.0)" },
+          { "label": "C8", "code": "\"CMYK\"" }
+        ],
+        "E": [
+          { "label": "E1", "code": "device = 1" },
+          { "label": "E2", "code": "train_result = model.train(data='helmet_dataset/data.yaml', epochs=0, imgsz=640, device=device)" },
+          { "label": "E3", "code": "device = torch.cuda.is_available()" },
+          { "label": "E4", "code": "train_result = model.predict(source='helmet_dataset/images', device=device)" },
+          { "label": "E5", "code": "device = 0 if torch.cuda.is_available() else 'cpu'" },
+          { "label": "E6", "code": "train_result = model.train(data='helmet_dataset/data.yaml', epochs=5, imgsz=640, batch=8, device=device, project='runs', name='helmet_initial')" },
+          { "label": "E7", "code": "train_result = model.export(format='onnx')" },
+          { "label": "E8", "code": "device = 'cuda' and 'cpu'" }
+        ]
+      }
+    },
+    {
+      "id": "s5",
+      "title": "样题 5 · 道路缺陷目标检测（YOLOv8）",
+      "topic": "目标检测",
+      "questions": [
+        {
+          "id": "s5-q1",
+          "type": "toolbox",
+          "prompt": "Cell 1：导入模块与随机种子，要求设置 NumPy 的随机种子\n\nimport ...\nrandom.seed(seed)\n<1>\ntorch.manual_seed(seed)",
+          "options": [],
+          "answer": { "group": "A", "label": "A3" },
+          "explanation": "NumPy 随机种子用 np.random.seed(seed)，对应工具箱 A3。"
+        },
+        {
+          "id": "s5-q2",
+          "type": "toolbox",
+          "prompt": "Cell 2：按『是否含道路缺陷』标签进行分层划分\n\ntrain_paths, val_paths = train_test_split(image_paths, test_size=0.25, random_state=seed, <2>)",
+          "options": [],
+          "answer": { "group": "A", "label": "A6" },
+          "explanation": "stratify=contains_damage，对应 A6。"
+        },
+        {
+          "id": "s5-q3",
+          "type": "toolbox",
+          "prompt": "Cell 3：去除首尾空白后，将类别名称统一为大写\n\nclass_names = [line.strip().<3>() for line in f if line.strip()]",
+          "options": [],
+          "answer": { "group": "N", "label": "N5" },
+          "explanation": "统一大写用 .upper()，对应 N5。"
+        },
+        {
+          "id": "s5-q4",
+          "type": "toolbox",
+          "prompt": "Cell 3：查询类别编号；未知类别返回整数 -1\n\nreturn class_to_id.get(name.strip().upper(), <4>)",
+          "options": [],
+          "answer": { "group": "N", "label": "N2" },
+          "explanation": "未知类别返回 -1，对应 N2。"
+        },
+        {
+          "id": "s5-q5",
+          "type": "toolbox",
+          "prompt": "Cell 4：将 PIL 图像缩放为 512×512\n\npreview_transform = transforms.Compose([<5>, transforms.ToTensor(), ...])",
+          "options": [],
+          "answer": { "group": "C", "label": "C6" },
+          "explanation": "transforms.Resize((512, 512))，对应 C6。"
+        },
+        {
+          "id": "s5-q6",
+          "type": "toolbox",
+          "prompt": "Cell 4：将原图转换为三通道 RGB 格式\n\nsample_image = Image.open(train_paths[0]).convert(<6>)",
+          "options": [],
+          "answer": { "group": "C", "label": "C3" },
+          "explanation": "convert('RGB')，对应 C3。"
+        },
+        {
+          "id": "s5-q7",
+          "type": "toolbox",
+          "prompt": "Cell 5：CUDA 可用时使用第 0 号 GPU，否则使用 CPU\n\n<7>",
+          "options": [],
+          "answer": { "group": "E", "label": "E4" },
+          "explanation": "device = 0 if torch.cuda.is_available() else 'cpu'，对应 E4。"
+        },
+        {
+          "id": "s5-q8",
+          "type": "toolbox",
+          "prompt": "Cell 5：使用 data.yaml 训练 4 epoch，imgsz=512，batch=4，写入 runs/road_damage_initial\n\n<8>",
+          "options": [],
+          "answer": { "group": "E", "label": "E3" },
+          "explanation": "model.train(data='road_dataset/data.yaml', epochs=4, imgsz=512, batch=4, device=device, project='runs', name='road_damage_initial')。"
+        }
+      ],
+      "toolboxes": {
+        "A": [
+          { "label": "A1", "code": "np.seed(seed)" },
+          { "label": "A2", "code": "stratify=image_paths" },
+          { "label": "A3", "code": "np.random.seed(seed)" },
+          { "label": "A4", "code": "shuffle=False" },
+          { "label": "A5", "code": "torch.random_seed(seed)" },
+          { "label": "A6", "code": "stratify=contains_damage" },
+          { "label": "A7", "code": "np.random.seed = seed" },
+          { "label": "A8", "code": "random_state=None" }
+        ],
+        "N": [
+          { "label": "N1", "code": "lower" },
+          { "label": "N2", "code": "-1" },
+          { "label": "N3", "code": "strip" },
+          { "label": "N4", "code": "\"unknown\"" },
+          { "label": "N5", "code": "upper" },
+          { "label": "N6", "code": "0" },
+          { "label": "N7", "code": "split" },
+          { "label": "N8", "code": "1" }
+        ],
+        "C": [
+          { "label": "C1", "code": "\"L\"" },
+          { "label": "C2", "code": "transforms.RandomHorizontalFlip(p=1.0)" },
+          { "label": "C3", "code": "\"RGB\"" },
+          { "label": "C4", "code": "transforms.CenterCrop((64, 64))" },
+          { "label": "C5", "code": "\"CMYK\"" },
+          { "label": "C6", "code": "transforms.Resize((512, 512))" },
+          { "label": "C7", "code": "transforms.ToPILImage()" },
+          { "label": "C8", "code": "\"BGR\"" }
+        ],
+        "E": [
+          { "label": "E1", "code": "train_result = model.predict(source='road_dataset/images', device=device)" },
+          { "label": "E2", "code": "device = torch.cuda.is_available()" },
+          { "label": "E3", "code": "train_result = model.train(data='road_dataset/data.yaml', epochs=4, imgsz=512, batch=4, device=device, project='runs', name='road_damage_initial')" },
+          { "label": "E4", "code": "device = 0 if torch.cuda.is_available() else 'cpu'" },
+          { "label": "E5", "code": "train_result = model.export(format='onnx')" },
+          { "label": "E6", "code": "device = 1" },
+          { "label": "E7", "code": "train_result = model.train(data='road_dataset/data.yaml', epochs=0, imgsz=512, device=device)" },
+          { "label": "E8", "code": "device = 'cuda' and 'cpu'" }
+        ]
+      }
+    },
+    {
+      "id": "s6",
+      "title": "样题 6 · 反光背心目标检测（YOLOv8）",
+      "topic": "目标检测",
+      "questions": [
+        {
+          "id": "s6-q1",
+          "type": "toolbox",
+          "prompt": "Cell 1：导入模块与随机种子，要求设置 PyTorch 的随机种子\n\nrandom.seed(seed)\nnp.random.seed(seed)\n<1>",
+          "options": [],
+          "answer": { "group": "A", "label": "A7" },
+          "explanation": "PyTorch 随机种子用 torch.manual_seed(seed)，对应 A7。"
+        },
+        {
+          "id": "s6-q2",
+          "type": "toolbox",
+          "prompt": "Cell 2：使用比例参数，将 25% 的图像划入验证集\n\ntrain_paths, val_paths = train_test_split(image_paths, <2>, random_state=seed, stratify=contains_vest)",
+          "options": [],
+          "answer": { "group": "A", "label": "A2" },
+          "explanation": "test_size=0.25，对应 A2。"
+        },
+        {
+          "id": "s6-q3",
+          "type": "toolbox",
+          "prompt": "Cell 3：先去除每行首尾空白，再统一为小写\n\nclass_names = [line.<3>().lower() for line in f if line.strip()]",
+          "options": [],
+          "answer": { "group": "N", "label": "N3" },
+          "explanation": "strip() 去除首尾空白，对应 N3。"
+        },
+        {
+          "id": "s6-q4",
+          "type": "toolbox",
+          "prompt": "Cell 3：查询类别编号；未知类别返回 -1，且不得修改映射表\n\nreturn class_to_id.<4>(name.strip().lower(), -1)",
+          "options": [],
+          "answer": { "group": "N", "label": "N1" },
+          "explanation": "dict.get(key, default) 是唯一不修改映射表的查询方式，对应 N1。"
+        },
+        {
+          "id": "s6-q5",
+          "type": "toolbox",
+          "prompt": "Cell 4：将 PIL 图像转换为张量，供后续 Normalize 使用\n\npreview_transform = transforms.Compose([transforms.Resize((320, 320)), <5>, transforms.Normalize(...)])",
+          "options": [],
+          "answer": { "group": "C", "label": "C8" },
+          "explanation": "transforms.ToTensor()，对应 C8。"
+        },
+        {
+          "id": "s6-q6",
+          "type": "toolbox",
+          "prompt": "Cell 4：将原图统一转换为三通道 RGB 格式\n\nsample_image = Image.open(train_paths[0]).convert(<6>)",
+          "options": [],
+          "answer": { "group": "C", "label": "C4" },
+          "explanation": "convert('RGB')，对应 C4。"
+        },
+        {
+          "id": "s6-q7",
+          "type": "toolbox",
+          "prompt": "Cell 5：CUDA 可用时使用第 0 号 GPU，否则使用 CPU\n\n<7>",
+          "options": [],
+          "answer": { "group": "E", "label": "E1" },
+          "explanation": "device = 0 if torch.cuda.is_available() else 'cpu'，对应 E1。"
+        },
+        {
+          "id": "s6-q8",
+          "type": "toolbox",
+          "prompt": "Cell 5：使用 data.yaml 训练 6 epoch，imgsz=320，batch=16，写入 runs/vest_initial\n\n<8>",
+          "options": [],
+          "answer": { "group": "E", "label": "E2" },
+          "explanation": "model.train(data='vest_dataset/data.yaml', epochs=6, imgsz=320, batch=16, device=device, project='runs', name='vest_initial')。"
+        }
+      ],
+      "toolboxes": {
+        "A": [
+          { "label": "A1", "code": "torch.random_seed(seed)" },
+          { "label": "A2", "code": "test_size=0.25" },
+          { "label": "A3", "code": "test_size=0.75" },
+          { "label": "A4", "code": "torch.seed = seed" },
+          { "label": "A5", "code": "train_size=0.25" },
+          { "label": "A6", "code": "test_size=25" },
+          { "label": "A7", "code": "torch.manual_seed(seed)" },
+          { "label": "A8", "code": "np.manual_seed(seed)" }
+        ],
+        "N": [
+          { "label": "N1", "code": "get" },
+          { "label": "N2", "code": "upper" },
+          { "label": "N3", "code": "strip" },
+          { "label": "N4", "code": "split" },
+          { "label": "N5", "code": "pop" },
+          { "label": "N6", "code": "lower" },
+          { "label": "N7", "code": "update" },
+          { "label": "N8", "code": "append" }
+        ],
+        "C": [
+          { "label": "C1", "code": "transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])" },
+          { "label": "C2", "code": "\"RGBA\"" },
+          { "label": "C3", "code": "transforms.ToPILImage()" },
+          { "label": "C4", "code": "\"RGB\"" },
+          { "label": "C5", "code": "transforms.RandomHorizontalFlip(p=1.0)" },
+          { "label": "C6", "code": "\"L\"" },
+          { "label": "C7", "code": "\"CMYK\"" },
+          { "label": "C8", "code": "transforms.ToTensor()" }
+        ],
+        "E": [
+          { "label": "E1", "code": "device = 0 if torch.cuda.is_available() else 'cpu'" },
+          { "label": "E2", "code": "train_result = model.train(data='vest_dataset/data.yaml', epochs=6, imgsz=320, batch=16, device=device, project='runs', name='vest_initial')" },
+          { "label": "E3", "code": "device = 1" },
+          { "label": "E4", "code": "train_result = model.train(data='vest_dataset/data.yaml', epochs=0, imgsz=320, device=device)" },
+          { "label": "E5", "code": "device = torch.cuda.is_available()" },
+          { "label": "E6", "code": "train_result = model.predict(source='vest_dataset/images', device=device)" },
+          { "label": "E7", "code": "train_result = model.export(format='onnx')" },
+          { "label": "E8", "code": "device = 'cuda' and 'cpu'" }
+        ]
+      }
+    }
+  ]
+}

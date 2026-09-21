@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fafafa;
+  --fg: #18181b;
+}
+
+.dark {
+  --bg: #0a0a0a;
+  --fg: #fafafa;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.5); }
+
+/* 打印优化 */
+@media print {
+  nav, .no-print, header, footer { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .print-only { display: block !important; }
+  a { color: black !important; text-decoration: none !important; }
+}
+
+/* 选项前的方框 */
+.choice-label { transition: all 0.15s ease; }
+
+/* 选项卡片选中样式（CSS-only，可降级） */
+.choice-card { @apply border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 cursor-pointer flex items-start gap-3 transition-colors; }
+.choice-card:hover { @apply bg-slate-50 dark:bg-slate-800; }
+.choice-card.is-selected { @apply border-brand-500 bg-brand-50 dark:bg-brand-900/30; }
+.choice-card.is-correct { @apply border-green-500 bg-green-50 dark:bg-green-900/30; }
+.choice-card.is-wrong { @apply border-red-500 bg-red-50 dark:bg-red-900/30; }
+.choice-card.is-partial { @apply border-yellow-500 bg-yellow-50 dark:bg-yellow-900/30; }
+.choice-card.is-correct-key { @apply border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20; }
+
+/* 等宽字体 */
+.code-block { @apply font-mono text-sm bg-slate-100 dark:bg-slate-900 rounded-md px-2 py-1; }
