@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import PageHero from '@/components/PageHero';
 import { theory } from '@/data';
 import type { TheoryQuestion } from '@/lib/types';
 import { TYPE_LABEL, TOPIC_LABEL } from '@/lib/types';
@@ -82,29 +83,44 @@ export default function ExamPage() {
   if (phase === 'idle') {
     return (
       <div className="space-y-4">
-        <section className="card">
-          <h1 className="text-xl font-semibold mb-3 flex items-center gap-2">
-            <Clock size={20} className="text-[color:var(--brand)]" />
-            模拟考试
-          </h1>
-          <p className="text-sm text-[color:var(--fg-muted)] mb-4">限时自测，超时自动交卷，自动判分。</p>
+        <PageHero
+          icon={<Clock size={24} className="text-white" strokeWidth={2.2} />}
+          eyebrow="限时模拟考 · 2 种模式"
+          title="模拟考试"
+          subtitle="限时自测，超时自动交卷，自动判分 + 错题归档。"
+          right={
+            <span
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-mono"
+              style={{
+                background: 'rgba(255,255,255,.12)',
+                border: '1px solid rgba(255,255,255,.22)',
+                color: '#fff',
+              }}
+            >
+              ⏱ 最多 90 min
+            </span>
+          }
+        />
+        <section className="card card-elevated">
+          <h2 className="text-base font-semibold mb-4">选择模式</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {(Object.keys(MODES) as ('theory' | 'practice')[]).map((k) => (
               <button
                 key={k}
-                className={`card text-left transition-all ${mode === k ? 'border-2 border-[color:var(--brand)]' : ''}`}
+                className={`card text-left transition-all ${mode === k ? '!border-[color:var(--brand)] !border-2' : ''}`}
+                style={mode === k ? { background: 'color-mix(in srgb, var(--brand) 6%, var(--bg-card))' } : undefined}
                 onClick={() => setMode(k)}
               >
-                <div className="font-medium mb-1">{MODES[k].label}</div>
-                <div className="text-xs text-[color:var(--fg-muted)] mb-2">{MODES[k].desc}</div>
-                <div className="text-xs">
+                <div className="font-semibold text-base mb-1">{MODES[k].label}</div>
+                <div className="text-xs text-[color:var(--fg-muted)] mb-2 leading-relaxed">{MODES[k].desc}</div>
+                <div className="flex flex-wrap gap-1.5">
                   <span className="chip chip-brand">{MODES[k].minutes} 分钟</span>
-                  <span className="chip ml-1">{MODES[k].total} 题</span>
+                  <span className="chip">{MODES[k].total} 题</span>
                 </div>
               </button>
             ))}
           </div>
-          <button className="btn btn-primary mt-4 w-full justify-center" onClick={start}>开始考试</button>
+          <button className="btn btn-primary btn-lg mt-5 w-full justify-center" onClick={start}>开始考试 →</button>
         </section>
       </div>
     );

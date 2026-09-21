@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Code2, BookOpen, ListChecks } from 'lucide-react';
+import { Code2, BookOpen, ListChecks, Sparkles } from 'lucide-react';
+import PageHero from '@/components/PageHero';
 import PrintButton from '@/components/PrintButton';
 import { coding } from '@/data';
 
@@ -9,15 +10,29 @@ const toolboxPapers = coding.toolboxPapers;
 export default function CodingPage() {
   return (
     <div className="space-y-6">
-      <section className="card">
-        <h1 className="text-xl font-semibold mb-2 flex items-center gap-2">
-          <Code2 size={20} className="text-[color:var(--brand)]" />
-          代码题速查
-        </h1>
-        <p className="text-sm text-[color:var(--fg-muted)]">
-          共 6 套样题：样题 1-3 为选段补全（4 选 1），样题 4-6 为工具箱选编号。本页提供<strong>答案速查表</strong>，临考 5 秒核对。
-        </p>
-      </section>
+      <PageHero
+        icon={<Code2 size={24} className="text-white" strokeWidth={2.2} />}
+        eyebrow="代码题 · 06 套"
+        title="代码题答案速查"
+        subtitle={
+          <>
+            样题 1-3 为<strong style={{ color: '#fcd34d' }}>选段补全</strong>（4 选 1），样题 4-6 为<strong style={{ color: '#fcd34d' }}>工具箱选编号</strong>。
+            本页提供<strong style={{ color: '#fcd34d' }}>答案速查表</strong>，临考 5 秒核对。
+          </>
+        }
+        right={
+          <span
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm"
+            style={{
+              background: 'rgba(255,255,255,.12)',
+              border: '1px solid rgba(255,255,255,.22)',
+              color: '#fff',
+            }}
+          >
+            <Sparkles size={14} /> 共 {fillPapers.length + toolboxPapers.length} 套
+          </span>
+        }
+      />
 
       {/* 样题 1-3：选段补全 */}
       <section>
