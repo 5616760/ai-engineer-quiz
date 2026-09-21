@@ -1,0 +1,76 @@
+{
+  "cheatCards": [
+    {
+      "id": "iou",
+      "title": "IoU = 交集 / 并集",
+      "body": "Intersection over Union，用于目标检测。IoU = A∩B / A∪B，范围 [0,1]。预测框与真实框重叠越多，IoU 越大。阈值常取 0.5，超过即判定为 TP。",
+      "tags": ["cv", "公式"]
+    },
+    {
+      "id": "loss",
+      "title": "CrossEntropyLoss vs MSELoss",
+      "body": "分类任务用 CrossEntropyLoss（内部已做 softmax + log），回归任务用 MSELoss。L1Loss 抗噪但梯度不平滑。常见搭配：CrossEntropyLoss + Adam(lr=1e-3)。",
+      "tags": ["dl", "loss"]
+    },
+    {
+      "id": "bio",
+      "title": "BIO 标注含义",
+      "body": "B-X：实体首字；I-X：实体内部；O：非实体。如「北京市」标注为 B-LOC / I-LOC。用于命名实体识别（NER）序列标注。",
+      "tags": ["nlp"]
+    },
+    {
+      "id": "rgb",
+      "title": "PIL 必加 .convert('RGB')",
+      "body": "测试集常含灰度图（单通道），直接 ToTensor 会得到 [1,H,W]，batch 时与 [3,H,W] 冲突报 stack 错。统一：Image.open(p).convert('RGB')。",
+      "tags": ["cv", "pil"]
+    },
+    {
+      "id": "eval",
+      "title": "model.eval() vs torch.no_grad()",
+      "body": "model.eval() 关闭 Dropout / BN 更新；torch.no_grad() 关闭梯度计算节省显存。**两者必须同时用**，仅用 eval() 仍会构建计算图浪费显存。",
+      "tags": ["dl"]
+    },
+    {
+      "id": "seed",
+      "title": "三件套随机种子",
+      "body": "random.seed(n); np.random.seed(n); torch.manual_seed(n); GPU 还要 torch.cuda.manual_seed_all(n)。保证实验可复现。",
+      "tags": ["dl", "seed"]
+    },
+    {
+      "id": "device",
+      "title": "设备选择三元式",
+      "body": "device = 0 if torch.cuda.is_available() else 'cpu'。注意：device='cuda' 而非 torch.device('cuda') 在 model.to(device) 里也能用。",
+      "tags": ["dl", "device"]
+    },
+    {
+      "id": "text-clean",
+      "title": "re.sub(r'\\s+', '', s)",
+      "body": "去所有空白字符（含空格、Tab、换行）；re.sub(r'\\s+', ' ', s) 是合并多空白为单空格；re.sub(r'\\w+', '', s) 是去所有单词字符（错）。",
+      "tags": ["nlp", "regex"]
+    },
+    {
+      "id": "tokenize",
+      "title": "UNK 与 PAD 的用法",
+      "body": "token2id.get(ch, UNK_ID) — 查不到时回退 UNK；末尾补齐：[PAD_ID] * (MAX_LEN - len(ids))，**不要用** [UNK_ID] * MAX_LEN（会污染）。",
+      "tags": ["nlp"]
+    },
+    {
+      "id": "transform",
+      "title": "transforms.Compose 顺序",
+      "body": "推理流水线必须确定性：Resize → ToTensor → Normalize(ImageNet mean/std)。**绝对不放** RandomResizedCrop / RandomHorizontalFlip。",
+      "tags": ["cv"]
+    },
+    {
+      "id": "yolo",
+      "title": "YOLOv8 训练 6 参",
+      "body": "model.train(data='.../data.yaml', epochs=N, imgsz=640, batch=8, device=device, project='runs', name='xxx')。train 不是 fit。",
+      "tags": ["cv", "yolo"]
+    },
+    {
+      "id": "stratify",
+      "title": "train_test_split 加 stratify",
+      "body": "分层抽样保证 train/val 标签比例一致。stratify=labels（标签数组），不是 path。常见错误：写成 stratify=image_paths。",
+      "tags": ["ml", "数据划分"]
+    }
+  ]
+}
