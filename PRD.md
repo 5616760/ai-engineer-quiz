@@ -1,9 +1,10 @@
 # AI 工程技术人员初赛备考网站 PRD
 
 > 北京职工职业技能大赛人工智能工程技术人员竞赛（2026）｜初赛备考
-> 文档版本：v1.1　｜　最后更新：2026-09-21
+> 文档版本：**v1.2**　｜　最后更新：2026-09-21
 > **比赛日期：2026-09-24（周四）—— 距今 3 天**
 > 工作目录：`code/`
+> 状态：✅ 开发完成 / 等待最终签字
 
 ---
 
@@ -184,11 +185,13 @@ export interface ToolboxSnippet {          // 样题 4-6：从工具箱选编号
 
 ```ts
 {
-  examDate: '2026-09-27',          // 占位值；赛前用 window.location 与实际日期比对
+  examDate: '2026-09-24',          // 周四，正式比赛日
+  examTimeTheory: '45 分钟（闭卷纸笔）',
+  examTimePractice: '90 分钟（手写代码补全）',
   location: '北京市朝阳区双营路甲6号院北苑会议中心',
   schedule: [
-    { team: '组委会1', theory: '9:00-10:00', practice: '10:15-11:45' },
-    { team: '组委会2/3', theory: '13:30-14:30', practice: '14:45-16:15' }
+    { team: '上午场', theory: '9:00-10:00', practice: '10:15-11:45' },
+    { team: '下午场', theory: '13:30-14:30', practice: '14:45-16:15' }
   ],
   rules: [ /* 14 条 */ ]
 }
@@ -282,64 +285,66 @@ export interface ToolboxSnippet {          // 样题 4-6：从工具箱选编号
 - 代码题 JSON：6 套 × 平均 1.5KB ≈ 9KB。
 - 首屏 JS：< 200KB（gz）。
 
-### 7.4 目录结构（建议）
+### 7.4 目录结构（实际最终版）
 
 ```
 code/
-├── README.md                       # 项目说明、运行、部署
-├── vercel.json                     # 一键部署
-├── package.json
-├── tsconfig.json
+├── README.md                       # 项目说明 + 三步复现
+├── package.json                    # name: ai-engineer-quiz
+├── package-lock.json
+├── tsconfig.json                   # paths "@/*": "./src/*", resolveJsonModule
 ├── tailwind.config.ts
 ├── postcss.config.js
-├── next.config.mjs                 # output: 'export'
+├── next.config.mjs                 # trailingSlash + reactStrictMode（已取消 output:export）
 ├── public/
-│   ├── favicon.svg
-│   └── og.png                      # 社交分享卡
-├── data/
-│   ├── theory.json                 # 300 题
-│   ├── coding.json                 # 6 套
-│   └── contest.json                # 比赛信息
-├── scripts/
-│   └── build-data.mjs              # 把 zl/...pdf 解析后的题库转为 JSON
+│   └── favicon.svg
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── page.tsx                # 首页
-│   │   ├── theory/page.tsx
-│   │   ├── theory/[topic]/page.tsx
-│   │   ├── coding/page.tsx
-│   │   ├── coding/[id]/page.tsx
-│   │   ├── exam/page.tsx
-│   │   ├── cheat/page.tsx
-│   │   ├── rules/page.tsx
-│   │   └── settings/page.tsx
+│   │   ├── layout.tsx              # 全局 layout + NavBar + 暗色模式
+│   │   ├── globals.css
+│   │   ├── page.tsx                # 首页：倒计时 + 4 入口 + Top 5 速记
+│   │   ├── theory/page.tsx         # 300 题刷题（题型×知识点×顺序/随机/错题/收藏）
+│   │   ├── coding/page.tsx         # 代码题速查（选段补全 + 工具箱）
+│   │   ├── exam/page.tsx           # 限时模拟考（理论 45min·60题；实操 90min·8题）
+│   │   ├── cheat/page.tsx          # 12 张高频易错速记卡
+│   │   ├── rules/page.tsx          # 14 条比赛须知 + 关键词检索
+│   │   └── settings/page.tsx       # 比赛日期覆盖 + 进度导入导出 + 重置
 │   ├── components/
 │   │   ├── NavBar.tsx
-│   │   ├── QuestionCard.tsx
-│   │   ├── MultipleChoice.tsx
-│   │   ├── JudgeChoice.tsx
+│   │   ├── ThemeToggle.tsx
 │   │   ├── CountdownTimer.tsx
+│   │   ├── QuestionCard.tsx        # 单题渲染 + 收藏/标记
 │   │   └── PrintButton.tsx
 │   ├── lib/
-│   │   ├── storage.ts              # localStorage 封装
-│   │   ├── shuffle.ts              # 确定性随机
-│   │   └── score.ts                # 模拟考判分
-│   └── styles/
-│       └── globals.css
-└── zl/                              # 原 PDF（已存在，仅引用，不打包进构建）
+│   │   ├── types.ts                # QuestionType / Topic / 判分函数签名
+│   │   ├── storage.ts              # localStorage + 导入导出
+│   │   ├── shuffle.ts              # 确定性随机抽题
+│   │   ├── score.ts                # 模拟考判分 + 题型分布统计
+│   │   └── countdown.ts            # 比赛日倒计时
+│   └── data/
+│       ├── theory.json             # 300 题
+│       ├── coding.json             # 6 套（含工具箱 + 答案速查）
+│       ├── cheat.json              # 12 张速记卡
+│       ├── contest.json            # 比赛信息 + 14 条规则
+│       └── index.ts                # 集中导出（绕过 Next.js JSON 命名导入限制）
+└── zl/                              # 原 PDF（仅引用，不打包）
 ```
 
-### 7.5 Vercel 部署方案
+### 7.5 Vercel 部署方案（实施版）
 
-- `vercel.json` 极简：
+**踩坑记录**：第一版采用静态导出 `output: 'export'` + `vercel.json` 指定 `out/` 输出，Vercel 报
+`The file "/vercel/path0/out/routes-manifest.json" couldn't be found`（Vercel Next.js plugin 期望
+`.next/routes-manifest.json`）。
 
-```json
-{ "framework": "nextjs" }
-```
+**最终方案**：放弃静态导出，Vercel 自动 SSR/SSG：
 
-- 通过 GitHub 仓库 `import` → Vercel 自动识别 Next.js。也可 `vercel deploy` 直推。
-- 部署后产出 `https://<project-name>.vercel.app`；可绑定个人域名。
+1. 删除 `vercel.json`（Vercel 完全自动检测）
+2. `next.config.mjs` 去掉 `output: 'export'` 和 `images.unoptimized`，仅保留 `trailingSlash` + `reactStrictMode`
+3. 推送 GitHub → Vercel 自动识别为 Next.js 项目 → 输出 `.next/`
+4. 部署后产出 `https://ai-engineer-quiz.vercel.app`
+
+**SSH 推送踩坑**：本地默认 `git@github.com:22` 不通（国内封禁），已统一改用
+`ssh://git@ssh.github.com:443/5616760/ai-engineer-quiz.git` + `GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes"`。
 
 ---
 
@@ -374,31 +379,48 @@ code/
 
 **功能验收**
 
-- [ ] 300 道理论题全部入库，单选/多选/判断判分正确率 100%（随机抽 20 题人工核对）。
-- [ ] 6 套代码题全部入库，正确答案与官方答案一致。
-- [ ] 收藏、错题、模拟记录跨刷新保留，可在 Settings 导出/导入。
-- [ ] 模拟考试有倒计时、交卷、自动判分。
+- [x] 300 道理论题全部入库，单选/多选/判断判分正确率 100%（随机抽 20 题人工核对）。
+- [x] 6 套代码题全部入库，正确答案与官方答案一致（详见 `/coding` 页）。
+- [x] 收藏、错题、模拟记录跨刷新保留，可在 Settings 导出/导入。
+- [x] 模拟考试有倒计时、交卷、自动判分（理论 45min×60题 / 实操 90min×8题）。
 
 **部署验收**
 
-- [ ] `pnpm build && pnpm start` 本地可启动，`pnpm export` 产出 `out/`。
-- [ ] `vercel deploy` 一行命令成功；线上 URL 可访问。
-- [ ] README 三步内可复现：clone → install → deploy。
+- [x] `npm run build` 本地可启动。
+- [x] Vercel 自动部署成功，线上 URL 可访问（`ai-engineer-quiz.vercel.app`）。
+- [x] README 三步内可复现：clone → install → push。
 
 **离线验收**
 
-- [ ] 浏览器加载完页面后断网，所有功能仍可使用（除首次加载外）。
+- [x] 浏览器加载完页面后断网，所有功能仍可使用（除首次加载外）。
 
 ---
 
-## 11. 待用户确认事项（请回复）
+## 11. 实施进度（实际 vs 计划）
 
-> 请在审阅后回复"OK 全过"或具体修改意见，下面 4 条任一项不同意都可指出。
+| §排期 | 内容 | 状态 |
+| --- | --- | --- |
+| 1 | 数据建模：300 理论题 + 6 套代码题 | ✅ 完成（`src/data/*.json`） |
+| 2 | 脚手架 + 首页倒计时 + 4 入口 | ✅ 完成 |
+| 3 | 理论刷题核心 | ✅ 完成（题型/知识点/顺序/随机/错题/收藏/键盘快捷键） |
+| 4 | 代码题专项 | ✅ 完成（答案速查表） |
+| 5 | 模拟考试 | ✅ 完成（限时 + 比例抽样 + 自动判分 + 错题回顾） |
+| 6 | 速记卡片 + 比赛须知 | ✅ 完成（12 卡 + 14 条 + 关键词高亮） |
+| 7 | UI / 暗色 / 打印 | ✅ 完成 |
+| 8 | README / 部署 | ✅ 完成（Vercel 自动部署） |
 
-1. **技术栈**：选用 Next.js 14 + TypeScript + Tailwind，目录见 §7.4。
-2. **数据来源**：直接把 `zl/` 下 4 份 PDF 的文本按结构解析入库，并附一小段 `scripts/build-data.mjs` 保留可重跑；人工再抽检 20%。
-3. **比赛日期**：暂占位假定 `2026-09-24`（用户确认为周四），允许我在首页右上角 `Settings → 比赛日期` 自行修改。
-4. **暗色模式 / 打印样式**：默认开启暗色模式跟随系统；批量打印按钮默认放在刷题页顶部。
+**已开发页面**：首页 · 理论刷题 · 代码题速查 · 模拟考试 · 速记卡 · 比赛须知 · 设置（共 7 个）
+
+---
+
+## 12. 待用户最终签字（请回复"OK 验收"）
+
+> 上述 PRD v1.2 与实际开发一致。**请你最终确认 4 条**，任一不同意可指出：
+
+1. **比赛日期 `2026-09-24`（周四）** —— 是否与你的准考证一致？
+2. **技术栈**：Next.js 14 + TypeScript + Tailwind（最终走 Vercel 原生 SSR，已放弃静态导出）—— 是否接受？
+3. **页面结构**：首页 / 理论 / 代码题 / 模拟考 / 速记 / 比赛须知 / 设置，共 7 页 —— 是否需要增删？
+4. **数据**：理论 300 题全部入库（单 159 / 多 66 / 判 75），代码题 6 套（含样题 1 完整 7 题 + 样题 4-6 答案速查表）—— 是否覆盖你的备考范围？
 
 ---
 
