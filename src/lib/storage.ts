@@ -107,6 +107,47 @@ export function markAnswered(id: number): void {
   writeJSON('answered', [...s]);
 }
 
+// 每题作答选择（qid -> 选中的选项 key / '正确'/'错误'）
+export function getPicked(): Record<number, string[]> {
+  return readJSON<Record<number, string[]>>('picked', {});
+}
+
+export function setPickedAll(map: Record<number, string[]>): void {
+  writeJSON('picked', map);
+}
+
+export function setPickedOne(id: number, picked: string[]): void {
+  const map = getPicked();
+  map[id] = picked;
+  writeJSON('picked', map);
+}
+
+// 已提交（看过对错反馈）的题
+export function getSubmitted(): Set<number> {
+  return new Set(readJSON<number[]>('submitted', []));
+}
+
+export function markSubmitted(id: number): void {
+  const s = getSubmitted();
+  s.add(id);
+  writeJSON('submitted', [...s]);
+}
+
+export function unmarkSubmitted(id: number): void {
+  const s = getSubmitted();
+  s.delete(id);
+  writeJSON('submitted', [...s]);
+}
+
+// 刷题进度：按筛选条件记住刷到第几题
+export function getProgressIdx(scope: string): number {
+  return readJSON<number>(`progress:${scope}`, 0);
+}
+
+export function setProgressIdx(scope: string, idx: number): void {
+  writeJSON(`progress:${scope}`, idx);
+}
+
 // 比赛日期覆盖（用户可在 settings 改）
 export function getExamDateOverride(): string | null {
   return readJSON<string | null>('exam-date-override', null);
@@ -124,6 +165,8 @@ export function exportAll(): string {
       wrong: getWrong(),
       history: getExamHistory(),
       answered: [...getAnswered()],
+      picked: getPicked(),
+      submitted: [...getSubmitted()],
       examDateOverride: getExamDateOverride(),
     },
     null,
@@ -138,6 +181,8 @@ export function importAll(json: string): boolean {
     if (data.wrong) writeJSON('wrong', data.wrong);
     if (data.history) writeJSON('exam-history', data.history);
     if (data.answered) writeJSON('answered', data.answered);
+    if (data.picked) writeJSON('picked', data.picked);
+    if (data.submitted) writeJSON('submitted', data.submitted);
     if (data.examDateOverride !== undefined) writeJSON('exam-date-override', data.examDateOverride);
     return true;
   } catch {
@@ -146,5 +191,5 @@ export function importAll(json: string): boolean {
 }
 
 export function resetAll(): void {
-  ['favorites', 'wrong', 'exam-history', 'answered', 'exam-date-override'].forEach(remove);
+  ['favorites', 'wrong', 'exam-history', 'answered', 'picked', 'submitted', 'exam-date-override'].forEach(remove);
 }

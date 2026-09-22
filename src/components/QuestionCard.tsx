@@ -11,6 +11,9 @@ import {
   recordWrong,
   clearWrong,
   markAnswered,
+  getSubmitted,
+  markSubmitted,
+  unmarkSubmitted,
 } from '@/lib/storage';
 import { judge } from '@/lib/score';
 
@@ -31,7 +34,7 @@ export default function QuestionCard({ q, index, total, picked, onChange, onPrev
   const [flagged, setFlagged] = useState(false);
 
   useEffect(() => {
-    setSubmitted(false);
+    setSubmitted(getSubmitted().has(q.id));
     setFav(getFavorites().has(q.id));
     setFlagged(Boolean(getWrong()[q.id]));
   }, [q.id]);
@@ -47,6 +50,7 @@ export default function QuestionCard({ q, index, total, picked, onChange, onPrev
 
   function submit() {
     setSubmitted(true);
+    markSubmitted(q.id);
     markAnswered(q.id);
     const r = judge(q, picked);
     if (r !== 'correct') recordWrong(q.id);
@@ -55,6 +59,7 @@ export default function QuestionCard({ q, index, total, picked, onChange, onPrev
 
   function reset() {
     setSubmitted(false);
+    unmarkSubmitted(q.id);
     onChange([]);
   }
 

@@ -9,6 +9,7 @@ import { theory } from '@/data';
 import { TOPIC_LABEL, TYPE_LABEL } from '@/lib/types';
 import type { Topic, QuestionType, TheoryQuestion } from '@/lib/types';
 import { shuffle, pickN } from '@/lib/shuffle';
+import { getPicked, setPickedOne, getProgressIdx, setProgressIdx } from '@/lib/storage';
 
 const TOPICS: (Topic | 'all')[] = ['all', 'ethics', 'ml', 'cv', 'nlp', 'dl', 'tooling'];
 const TYPES: (QuestionType | 'all')[] = ['all', 'single', 'multiple', 'judge'];
@@ -35,7 +36,29 @@ export default function TheoryInner() {
   const [pickedMap, setPickedMap] = useState<Record<number, string[]>>({});
   const [idx, setIdx] = useState(0);
 
-  useEffect(() => { setIdx(0); }, [topic, type, mode]);
+  // 刷新后恢复：每题作答记录
+  useEffect(() => {
+    setPickedMap(getPicked());
+  }, []);
+
+  // 刷新后恢复：当前筛选条件下的刷题进度
+  const scope = `${topic}/${type}/${mode}`;
+  useEffect(() => {
+    setIdx(Math.max(0, getProgressIdx(scope)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope]);
+
+  // 进度持久化（切题即存）
+  useEffect(() => {
+    setProgressIdx(scope, idx);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, scope]);
+
+  // 恢复进度需等 list 就绪后校正越界
+  useEffect(() => {
+    if (idx >= list.length) setIdx(Math.max(0, list.length - 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list.length]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -106,7 +129,10 @@ export default function TheoryInner() {
           index={idx}
           total={list.length}
           picked={pickedMap[current.id] || []}
-          onChange={(p) => setPickedMap((m) => ({ ...m, [current.id]: p }))}
+          onChange={(p) => {
+            setPickedMap((m) => ({ ...m, [current.id]: p }));
+            setPickedOne(current.id, p);
+          }}
           onPrev={idx > 0 ? () => setIdx(idx - 1) : undefined}
           onNext={idx < list.length - 1 ? () => setIdx(idx + 1) : undefined}
         />
