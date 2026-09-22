@@ -40,3 +40,9 @@ src/data/*.parsed.json
 
 # 测试输出
 test_out.txt
+
+# 本地构建/部署产物与日志
+out.zip
+build.log
+build.err
+proc.pid

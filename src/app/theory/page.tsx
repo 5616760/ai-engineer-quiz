@@ -3,7 +3,10 @@ import { Sparkles } from 'lucide-react';
 import PageHero from '@/components/PageHero';
 import TheoryInner from './TheoryInner';
 
-export const dynamic = 'force-dynamic';
+// 静态导出要求：移除 force-dynamic，让 Next.js 自动判断。
+// useSearchParams 已在 TheoryInner（client component）+ Suspense 内安全使用。
+// 同时加 dynamic = 'force-static' 显式声明，避免 Next.js 在客户端组件包裹 Suspense 时仍标 force-dynamic。
+export const dynamic = 'force-static';
 
 export default function TheoryPage() {
   return (

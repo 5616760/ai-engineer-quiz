@@ -9,7 +9,7 @@ export default function HomePage() {
   const target = getExamDate();
   const totalQ = theory.length;
   const cheatTop5 = cheatCards.slice(0, 5);
-  const codingCount = coding.length;
+  const codingCount = coding.fillPapers.length + coding.toolboxPapers.length;
 
   return (
     <div className="space-y-8">
