@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:vercel": "next build && node -e \"require('fs').writeFileSync('out/routes-manifest.json', JSON.stringify({version:1,pages:{},notFound:[],dynamicRoutes:[],staticRoutes:[],preview:{previewModeId:'',previewModeSigningKey:'',previewModeEncryptionKey:''}}))\"",
     "start": "next start",
     "export": "next build",
     "lint": "next lint"
